@@ -17,6 +17,12 @@ def instance_to_string(obj, include_private=False, include_type_properties=False
           a: 1,
           b: '42',
         >
+        >>> print(instance_to_string(moo, include_private=True))
+        Moo<
+          _c: 3.14,
+          a: 1,
+          b: '42',
+        >
     '''
     type_keys = set(dir(type(obj)))
     is_valid = lambda key, value: (
