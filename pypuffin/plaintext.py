@@ -2,8 +2,9 @@ from types import MethodType
 
 
 def instance_to_string(obj, include_private=False, include_type_properties=False, include_methods=False):
-    ''' Return a reasonable string representation of the given object, including any non-private properties. Omit
-        properties that are present on the type, since they are likely not interesting.
+    ''' Return a reasonable string representation of the given object, including any public properties. By default
+        omit private properties, and things that are present on the type, since they are likely not interesting. We
+        also skip methods by default.
     '''
     type_keys = set(dir(type(obj)))
     is_valid = lambda key, value: (
