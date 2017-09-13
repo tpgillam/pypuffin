@@ -5,6 +5,18 @@ def instance_to_string(obj, include_private=False, include_type_properties=False
     ''' Return a reasonable string representation of the given object, including any public properties. By default
         omit private properties, and things that are present on the type, since they are likely not interesting. We
         also skip methods by default.
+
+        >>> class Moo():
+        ...     def __init__(self):
+        ...         self.a = 1
+        ...         self.b = '42'
+        ...         self._c = 3.14
+        >>> moo = Moo()
+        >>> print(instance_to_string(moo))
+        Moo<
+          a: 1,
+          b: '42',
+        >
     '''
     type_keys = set(dir(type(obj)))
     is_valid = lambda key, value: (
@@ -23,4 +35,4 @@ def instance_to_string(obj, include_private=False, include_type_properties=False
 
     return '{}<\n{}\n>'.format(
             type(obj).__name__, 
-            '\n'.join('  {}: {},'.format(key, value) for key, value in sorted(key_to_value.items())))
+            '\n'.join('  {}: {!r},'.format(key, value) for key, value in sorted(key_to_value.items())))
