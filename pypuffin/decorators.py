@@ -21,7 +21,6 @@ def _isinstance(value, type_):
     return isinstance(value, type_)
 
 
-
 def _is_empty(iterator):
     ''' Return True iff the given iterator is empty. It can mutate the argument!
 
@@ -36,7 +35,6 @@ def _is_empty(iterator):
         return True
     else:
         return False
-
 
 
 def accepts(*args, **kwargs):
@@ -131,7 +129,6 @@ def accepts(*args, **kwargs):
         # If there are any elements left in iter_args or iter_kwargs, then we fail
         if not (_is_empty(iter_args) and _is_empty(iter_kwargs)):
             raise ValueError("Mismatched signature")
-
 
         @wraps(func)
         def new_func(*f_args, **f_kwargs):
