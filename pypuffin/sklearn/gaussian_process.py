@@ -70,10 +70,9 @@ def gradient_of_mean(regressor, x_eval):
         Returns array of shape (n_eval, dim), representing the gradient of the predicted surface at each point.
     '''
     # kernel_gradient is of shape (n_eval, n_train, dim)
-    kernel_gradient = _gradient_kernel(regressor.kernel_, x_eval, regressor.X_train)
+    kernel_gradient = _gradient_kernel(regressor.kernel_, x_eval, regressor.X_train_)
 
     # alpha_ is of shape (n_train,). We need to contract along the matching indices, which in this case means axis 1
     # of kernel_gradient, and axis 0 of alpha_. This is what the following function call performs.
-    return np.tensordot(kernel_gradient, regressor.alpha_, (1, 0))
-
+    return numpy.tensordot(kernel_gradient, regressor.alpha_, (1, 0))
 
