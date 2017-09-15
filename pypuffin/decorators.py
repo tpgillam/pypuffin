@@ -102,6 +102,28 @@ def accepts(*args, **kwargs):
         2
         >>> foo7(2, 0.1)
         2
+
+        >>> from pypuffin.types import Callable
+        >>> @accepts(Integral, (None, Callable))
+        ... def foo8(a, b=None):
+        ...     if b is None:
+        ...         return a
+        ...     return b(a)
+        >>> foo8(1)
+        1
+        >>> import math
+        >>> foo8(4, math.sqrt)
+        2.0
+        >>> foo8(4, b=math.sqrt)
+        2.0
+        >>> foo8(4, 2)
+        Traceback (most recent call last):
+          ...
+        ValueError: Argument b is 2, but should have type (None, <class 'pypuffin.types.Callable'>)
+        >>> foo8(4, b=2)
+        Traceback (most recent call last):
+          ...
+        ValueError: Argument b is 2, but should have type (None, <class 'pypuffin.types.Callable'>)
     '''
     def decorator(func):
         # Check that the signature matches.
