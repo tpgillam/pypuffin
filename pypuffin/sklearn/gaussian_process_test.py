@@ -67,6 +67,5 @@ class TestGaussianProcess(TestCase):
         dx = 1e-6
         expected_gradient = (self.regressor.predict(self.X_eval + dx) - self.regressor.predict(self.X_eval)) / dx
         expected_gradient = _reshapex(expected_gradient)
-        self.assertTrue(numpy.allclose(gradient, expected_gradient)
-
+        self.assertTrue(numpy.allclose(gradient, expected_gradient))
 
