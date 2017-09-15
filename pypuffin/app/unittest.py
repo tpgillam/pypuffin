@@ -16,6 +16,7 @@ class IgnoreDocstrings(Plugin):
     name = 'ignore-docstrings'
 
     def describeTest(self, test):
+        ''' Summarise the test, for verbose output '''
         is_doctest = isinstance(test.test, DocTestCase)
         if is_doctest:
             # Returning None is equivalent to not implementing this case. We are happy with the
@@ -30,7 +31,7 @@ def main():
     else:
         modules = sys.argv
     nose.run(addplugins=[IgnoreDocstrings()],
-            argv=modules + ['--with-doctest', '-v', '--with-ignore-docstrings'])
+             argv=modules + ['--with-doctest', '-v', '--with-ignore-docstrings'])
 
 
 if __name__ == '__main__':
