@@ -1,3 +1,5 @@
+''' Methods for creating and manipulating strings '''
+
 from types import MethodType
 
 
