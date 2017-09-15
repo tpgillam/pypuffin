@@ -51,7 +51,7 @@ def accepts(*args, **kwargs):
         >>> foo(2.5)
         Traceback (most recent call last):
           ...
-        ValueError: Argument 0 is 2.5, but should have type <class 'numbers.Integral'>
+        ValueError: Argument a is 2.5, but should have type <class 'numbers.Integral'>
 
         >>> @accepts(Integral, b=(None, bool))
         ... def foo2(a, b=None):
@@ -93,6 +93,15 @@ def accepts(*args, **kwargs):
         Traceback (most recent call last):
           ...
         ValueError: Default argument b is 3, but should have type (None, <class 'bool'>)
+
+        >>> from numbers import Real
+        >>> @accepts(Integral, b=Real)
+        ... def foo7(a, b=0.3):
+        ...     return a
+        >>> foo7(2, b=0.1)
+        2
+        >>> foo7(2, 0.1)
+        2
     '''
     def decorator(func):
         # Check that the signature matches.
@@ -100,14 +109,21 @@ def accepts(*args, **kwargs):
         iter_args = iter(args)
         iter_kwargs = iter(kwargs.items())
         iter_parameters = iter(signature.parameters.items())
+
+        # Store a mapping from argument name to expected type, use when doing call-time checks
+        name_to_type = {}
+
         for name, parameter in iter_parameters:
             try:
                 # No checking to do for the positional arguments other than that the signature says that it should
                 # be positional
-                next(iter_args)
+                val_arg = next(iter_args)
                 if parameter.kind not in (Parameter.POSITIONAL_ONLY, Parameter.POSITIONAL_OR_KEYWORD):
                     print(parameter.kind)
                     raise ValueError("Mismatched signature")
+
+                # Store positional argument
+                name_to_type[name] = val_arg
 
             except StopIteration:
                 try:
@@ -124,31 +140,25 @@ def accepts(*args, **kwargs):
                         raise ValueError("Default argument {} is {}, but should have type {}".format(name, 
                             parameter.default, val_kwarg))
 
+                    # Store keyword argument
+                    name_to_type[name] = val_kwarg
+
                 except StopIteration:
                     # Run out of args & kwargs. If *do* have any arguments left, then error.
                     if not _is_empty(iter_parameters):
                         raise ValueError("Mismatched signature")
+
         # If there are any elements left in iter_args or iter_kwargs, then we fail
         if not (_is_empty(iter_args) and _is_empty(iter_kwargs)):
             raise ValueError("Mismatched signature")
 
         @wraps(func)
         def new_func(*f_args, **f_kwargs):
-            if len(args) != len(f_args):
-                raise ValueError("Mismatched argument list")
-            if len(f_kwargs.keys() - kwargs.keys()) > 0:
-                raise ValueError("Mismatched keyword argument keys")
-
-            for i, (arg, f_arg) in enumerate(zip(args, f_args)):
-                if not _isinstance(f_arg, arg):
-                    raise ValueError("Argument {} is {}, but should have type {}".format(i, f_arg, arg))
-
-            for name in f_kwargs:
-                arg = kwargs[name]
-                f_arg = f_kwargs[name]
-                if not _isinstance(f_arg, arg):
-                    raise ValueError("Argument {} is {}, but should have type {}".format(name, f_arg, arg))
-
+            bound_arguments = signature.bind(*f_args, **f_kwargs)
+            for name, value in bound_arguments.arguments.items():
+                expected_type = name_to_type[name]
+                if not _isinstance(value, expected_type):
+                    raise ValueError("Argument {} is {}, but should have type {}".format(name, value, expected_type))
             return func(*f_args, **f_kwargs)
         return new_func
     return decorator
