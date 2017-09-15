@@ -1,3 +1,5 @@
+''' Assorted decorators for adding commonly desired functionality '''
+
 import inspect
 
 from functools import wraps
