@@ -5,6 +5,7 @@ including:
 
 * nose
 * numpy
+* pylint
 * scipy
 * scikit-learn
 
