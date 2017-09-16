@@ -3,7 +3,7 @@
 
 class _CallableMeta(type):
     ''' Metaclass for Callable '''
-    
+
     def __instancecheck__(self, instance):
         return callable(instance)
 
@@ -13,5 +13,3 @@ class Callable(metaclass=_CallableMeta):
 
     def __init__(self):
         raise RuntimeError("Do not instantiate Callable")
-
-
