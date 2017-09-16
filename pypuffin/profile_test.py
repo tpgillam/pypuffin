@@ -1,8 +1,8 @@
 ''' Tests for pypuffin.profile '''
 
-from pypuffin.profile import Profiler, Timer
-
 from unittest import TestCase
+
+from pypuffin.profile import Profiler, Timer
 
 
 class TestProfile(TestCase):
