@@ -40,7 +40,7 @@ def _is_empty(iterator):
 
 
 def accepts(*args, **kwargs):
-    ''' Create a decorator to do type-checking on the arguments to the wrapped function 
+    ''' Create a decorator to do type-checking on the arguments to the wrapped function
 
         >>> from numbers import Integral
         >>> @accepts(Integral)
@@ -159,7 +159,7 @@ def accepts(*args, **kwargs):
 
                     # Check that default arguments are all valid
                     if not _isinstance(parameter.default, val_kwarg):
-                        raise ValueError("Default argument {} is {}, but should have type {}".format(name, 
+                        raise ValueError("Default argument {} is {}, but should have type {}".format(name,
                             parameter.default, val_kwarg))
 
                     # Store keyword argument
@@ -184,4 +184,3 @@ def accepts(*args, **kwargs):
             return func(*f_args, **f_kwargs)
         return new_func
     return decorator
-
