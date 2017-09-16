@@ -1,6 +1,7 @@
 ''' Extra functionality based on sklearn's Gaussian Process library '''
 
 import numpy
+import scipy
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ConstantKernel, Product, RBF
@@ -9,8 +10,8 @@ from pypuffin.decorators import accepts
 
 
 def _gradient_kernel(kernel, x_1, x_2):
-    ''' Compute the gradient of a kernel covariance between x_1 and x_2
-    
+    ''' Compute the gradient of a kernel covariance between x_1 and x_2.
+
         Arguments:
 
             kernel:  kernel (possibly composite) instance
@@ -78,3 +79,42 @@ def gradient_of_mean(regressor, x_eval):
     # of kernel_gradient, and axis 0 of alpha_. This is what the following function call performs.
     return numpy.tensordot(kernel_gradient, regressor.alpha_, (1, 0))
 
+
+@accepts(GaussianProcessRegressor, numpy.ndarray)
+def gradient_of_std(regressor, x_eval):
+    ''' Return the gradient of the standard deviation of the prediction at the given points of the input space
+
+        Arguments:
+
+            regressor:  The trained GP regressor instance
+            x_eval:     ndarray of shape (n_eval, dim)
+
+        Returns array of shape (n_eval, dim), representing the gradient of the predicted standard deviation
+        surface at each point.
+    '''
+    # Compute kernel matrices we need
+    kernel = regressor.kernel_
+    x_train = regressor.X_train_
+    k_eval_eval_diag = kernel.diag(x_eval)
+    k_eval_train = kernel(x_eval, x_train)
+
+    # We use the code from GaussianProcessRegressor.predict(..) to implement k_train_train_inv
+    l_inv = scipy.linalg.solve_triangular(regressor.L_.T, numpy.eye(regressor.L_.shape[0]))
+    k_train_train_inv = l_inv.dot(l_inv.T)
+
+    # Now we can compute the variance
+    variance = k_eval_eval_diag - numpy.einsum("ij,ij->i", numpy.dot(k_eval_train, k_train_train_inv), k_eval_train)
+    std = numpy.sqrt(variance)
+
+    # Compute the gradients of the kernels
+    d_k_eval_eval = _gradient_kernel(kernel, x_eval, x_eval)
+    d_k_eval_eval_diag = numpy.diagonal(d_k_eval_eval).T
+    d_k_eval_train = _gradient_kernel(kernel, x_eval, x_train)
+
+    # This is the gradient of the variance - we then perform the appropriate correction to get the gradient of
+    # the standard deviation
+    d_variance = d_k_eval_eval_diag - 2 * numpy.einsum("ijd,jk,ik->id",
+                                                       d_k_eval_train,
+                                                       k_train_train_inv,
+                                                       k_eval_train)
+    return d_variance / (2 * std[:, numpy.newaxis])

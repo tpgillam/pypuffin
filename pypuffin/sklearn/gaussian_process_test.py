@@ -6,7 +6,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ConstantKernel, Product, RBF
 
 from pypuffin.sklearn.gaussian_process import (_gradient_constant, _gradient_kernel, _gradient_product, _gradient_rbf,
-                                               gradient_of_mean)
+                                               gradient_of_mean, gradient_of_std)
 
 
 def _reshapex(x):
@@ -69,3 +69,15 @@ class TestGaussianProcess(TestCase):
         expected_gradient = _reshapex(expected_gradient)
         self.assertTrue(numpy.allclose(gradient, expected_gradient))
 
+    def test_gradient_of_std(self):
+        gradient = gradient_of_std(self.regressor, self.X_eval)
+
+        # Finite difference estimate. We need to do the reshaping, for the same reasons as in _test_kernel_gradient_impl
+        dx = 1e-6
+        _, std_x_dx = self.regressor.predict(self.X_eval + dx, return_std=True)
+        _, std_x = self.regressor.predict(self.X_eval, return_std=True)
+        expected_gradient = (std_x_dx - std_x) / dx
+        expected_gradient = _reshapex(expected_gradient)
+
+        # Have to relax tolerance slightly
+        self.assertTrue(numpy.allclose(gradient, expected_gradient, atol=1e-6))
