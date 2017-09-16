@@ -1,3 +1,5 @@
+''' Tests for pypuffin.types '''
+
 from unittest import TestCase
 
 from pypuffin.types import Callable
@@ -12,8 +14,7 @@ class TestTypes(TestCase):
         self.assertNotIsInstance(object(), Callable)
         self.assertNotIsInstance(1, Callable)
         self.assertNotIsInstance('a', Callable)
-        class Moo():
+        class Moo():  # pylint: disable=missing-docstring
             def __call__(self):
                 pass
         self.assertIsInstance(Moo(), Callable)
-

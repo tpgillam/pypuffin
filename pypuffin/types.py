@@ -4,7 +4,7 @@
 class _CallableMeta(type):
     ''' Metaclass for Callable '''
 
-    def __instancecheck__(self, instance):
+    def __instancecheck__(cls, instance):
         return callable(instance)
 
 

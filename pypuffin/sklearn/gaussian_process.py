@@ -23,18 +23,20 @@ def _gradient_kernel(kernel, x_1, x_2):
     '''
     # In order to support a new type of kernel, create the necessary function below, and add it into this mapping.
     kernel_type_to_gradient_function = {
-            ConstantKernel: _gradient_constant,
-            Product: _gradient_product,
-            RBF: _gradient_rbf}
+        ConstantKernel: _gradient_constant,
+        Product: _gradient_product,
+        RBF: _gradient_rbf}
 
-    if type(kernel) not in kernel_type_to_gradient_function:
+    # Use explicit type comparison, since overriding the kernel is moderately likely to change the gradient
+    # computation that we will want to use
+    if type(kernel) not in kernel_type_to_gradient_function:  # pylint: disable=unidiomatic-typecheck
         raise ValueError("Unsupported kernel for gradient: {}".format(kernel))
 
     return kernel_type_to_gradient_function[type(kernel)](kernel, x_1, x_2)
 
 
 @accepts(ConstantKernel, numpy.ndarray, numpy.ndarray)
-def _gradient_constant(kernel, x_1, x_2):
+def _gradient_constant(_, x_1, x_2):
     ''' Returns the gradient of a constant kernel. This will always be zero. '''
     return numpy.zeros((x_1.shape[0], x_2.shape[0], x_2.shape[1]))
 

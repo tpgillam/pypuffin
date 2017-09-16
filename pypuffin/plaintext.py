@@ -28,11 +28,11 @@ def instance_to_string(obj, include_private=False, include_type_properties=False
     '''
     type_keys = set(dir(type(obj)))
     is_valid = lambda key, value: (
-            not key.startswith('__') and
-            (include_private or not key.startswith('_')) and
-            (include_type_properties or key not in type_keys) and
-            (include_methods or not isinstance(value, MethodType))
-            )
+        not key.startswith('__') and
+        (include_private or not key.startswith('_')) and
+        (include_type_properties or key not in type_keys) and
+        (include_methods or not isinstance(value, MethodType))
+        )
 
     key_to_value = {key: value for key, value in obj.__dict__.items() if is_valid(key, value)}
     for key in dir(obj):
@@ -42,5 +42,5 @@ def instance_to_string(obj, include_private=False, include_type_properties=False
         key_to_value[key] = value
 
     return '{}<\n{}\n>'.format(
-            type(obj).__name__,
-            '\n'.join('  {}: {!r},'.format(key, value) for key, value in sorted(key_to_value.items())))
+        type(obj).__name__,
+        '\n'.join('  {}: {!r},'.format(key, value) for key, value in sorted(key_to_value.items())))

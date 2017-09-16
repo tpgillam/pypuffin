@@ -18,7 +18,7 @@ class Profiler():
 
     def __init__(self, sortby='cumulative'):
         self._sortby = sortby
-        self._profiler  = cProfile.Profile()
+        self._profiler = cProfile.Profile()
         self._enabled = False
 
     def __enter__(self):
@@ -58,5 +58,3 @@ class Timer():
 
     def __str__(self):
         return "Elapsed time: {}".format(self._elapsed_time)
-
-

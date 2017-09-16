@@ -125,7 +125,7 @@ def accepts(*args, **kwargs):
           ...
         ValueError: Argument b is 2, but should have type (None, <class 'pypuffin.types.Callable'>)
     '''
-    def decorator(func):
+    def decorator(func):  # pylint: disable=missing-docstring
         # Check that the signature matches.
         signature = inspect.signature(func)
         iter_args = iter(args)
@@ -159,8 +159,8 @@ def accepts(*args, **kwargs):
 
                     # Check that default arguments are all valid
                     if not _isinstance(parameter.default, val_kwarg):
-                        raise ValueError("Default argument {} is {}, but should have type {}".format(name,
-                            parameter.default, val_kwarg))
+                        raise ValueError("Default argument {} is {}, but should have type {}".format(
+                            name, parameter.default, val_kwarg))
 
                     # Store keyword argument
                     name_to_type[name] = val_kwarg
@@ -175,7 +175,7 @@ def accepts(*args, **kwargs):
             raise ValueError("Mismatched signature")
 
         @wraps(func)
-        def new_func(*f_args, **f_kwargs):
+        def new_func(*f_args, **f_kwargs):  # pylint: disable=missing-docstring
             bound_arguments = signature.bind(*f_args, **f_kwargs)
             for name, value in bound_arguments.arguments.items():
                 expected_type = name_to_type[name]

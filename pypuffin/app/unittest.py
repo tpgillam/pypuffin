@@ -1,7 +1,8 @@
 ''' Run the unittests '''
 
-import nose
 import sys
+
+import nose
 
 from nose.plugins import Plugin
 from nose.plugins.doctests import DocTestCase
@@ -15,7 +16,7 @@ class IgnoreDocstrings(Plugin):
 
     name = 'ignore-docstrings'
 
-    def describeTest(self, test):
+    def describeTest(self, test):  # pylint: disable=invalid-name,no-self-use
         ''' Summarise the test, for verbose output '''
         is_doctest = isinstance(test.test, DocTestCase)
         if is_doctest:
@@ -26,7 +27,7 @@ class IgnoreDocstrings(Plugin):
 
 
 def main():
-    if len(sys.argv) == 0:
+    if not sys.argv:
         modules = ['pypuffin']
     else:
         modules = sys.argv
