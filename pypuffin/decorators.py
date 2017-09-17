@@ -3,7 +3,7 @@
 import inspect
 
 from functools import wraps
-from inspect import Parameter
+from inspect import Parameter  # pylint: disable=ungrouped-imports
 
 
 # TODO Do we want to create & expose a cached isinstance here to avoid MRO walking?

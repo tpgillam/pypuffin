@@ -18,10 +18,16 @@ disable = too-few-public-methods
 no-docstring-rgx = __.*__|main
 
 # Regular expression which should only match correct variable names
-variable-rgx = [a-z_][a-z0-9_]{2,30}|a|b|c|x|y|z$
+variable-rgx = [a-z_][a-z0-9_]{0,50}$
 
 # Regular expression matching correct attribute names
-attr-rgx=[a-z_][a-z0-9_]{2,30}|x|y|z$
+attr-rgx=[a-z_][a-z0-9_]{0,50}$
+
+
+[DESIGN]
+
+# Maximum number of arguments for a function / method
+max-args = 10
 
 
 [FORMAT]
@@ -36,4 +42,4 @@ max-line-length = 120
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis. It
 # supports qualified module names, as well as Unix pattern matching.
-ignored-modules=numpy.linalg
+ignored-modules = numpy.linalg, numpy.random
