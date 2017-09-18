@@ -5,8 +5,43 @@ import inspect
 from functools import wraps
 from inspect import Parameter  # pylint: disable=ungrouped-imports
 
+from pypuffin.contextlib import safecontextmanager
 
-# TODO Do we want to create & expose a cached isinstance here to avoid MRO walking?
+
+# Global state to monitor whether or not we want to disable accepts. We use a stack to support entering the context
+# multiple times.
+_TYPECHECKING_ENABLED = True
+_TYPECHECKING_ENABLED_STACK = []
+
+
+def typechecking_enabled():
+    ''' Returns True iff typechecking is enabled '''
+    return _TYPECHECKING_ENABLED
+
+
+@safecontextmanager
+def disable_typechecking():
+    ''' Context manager to disable runtime type checking, for increased performance
+
+        >>> print(1, typechecking_enabled())
+        1 True
+        >>> with disable_typechecking():
+        ...     print(2, typechecking_enabled())
+        ...     with disable_typechecking():
+        ...         print(3, typechecking_enabled())
+        ...     print(4, typechecking_enabled())
+        2 False
+        3 False
+        4 False
+        >>> print(5, typechecking_enabled())
+        5 True
+    '''
+    global _TYPECHECKING_ENABLED
+    _TYPECHECKING_ENABLED_STACK.append(_TYPECHECKING_ENABLED)
+    _TYPECHECKING_ENABLED = False
+    yield
+    _TYPECHECKING_ENABLED = _TYPECHECKING_ENABLED_STACK.pop()
+
 
 def _isinstance(value, type_):
     ''' Re-implementation of isinstance with edge-cases, including supporting 'None'.
@@ -124,6 +159,13 @@ def accepts(*args, **kwargs):
         Traceback (most recent call last):
           ...
         ValueError: Argument b is 2, but should have type (None, <class 'pypuffin.types.Callable'>)
+
+        Runtime typechecking can be disabled like so
+        >>> with disable_typechecking():
+        ...     foo8(4, b=2)
+        Traceback (most recent call last):
+          ...
+        TypeError: 'int' object is not callable
     '''
     def decorator(func):  # pylint: disable=missing-docstring
         # Check that the signature matches.
@@ -176,11 +218,12 @@ def accepts(*args, **kwargs):
 
         @wraps(func)
         def new_func(*f_args, **f_kwargs):  # pylint: disable=missing-docstring
-            bound_arguments = signature.bind(*f_args, **f_kwargs)
-            for name, value in bound_arguments.arguments.items():
-                expected_type = name_to_type[name]
-                if not _isinstance(value, expected_type):
-                    raise ValueError("Argument {} is {}, but should have type {}".format(name, value, expected_type))
+            if typechecking_enabled():
+                bound_arguments = signature.bind(*f_args, **f_kwargs)
+                for name, value in bound_arguments.arguments.items():
+                    expected_type = name_to_type[name]
+                    if not _isinstance(value, expected_type):
+                        raise ValueError(f"Argument {name} is {value}, but should have type {expected_type}")
             return func(*f_args, **f_kwargs)
         return new_func
     return decorator
