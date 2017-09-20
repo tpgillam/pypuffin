@@ -104,9 +104,9 @@ def gradient_of_std(regressor, x_eval):
     l_inv = scipy.linalg.solve_triangular(regressor.L_.T, numpy.eye(regressor.L_.shape[0]))
     k_train_train_inv = l_inv.dot(l_inv.T)
 
-    # Now we can compute the variance
+    # Now we can compute the variance. Protect against negative values, which can occur due to numerical imprecision.
     variance = k_eval_eval_diag - numpy.einsum("ij,ij->i", numpy.dot(k_eval_train, k_train_train_inv), k_eval_train)
-    std = numpy.sqrt(variance)
+    std = numpy.sqrt(numpy.maximum(0, variance))
 
     # Compute the gradients of the kernels
     d_k_eval_eval = _gradient_kernel(kernel, x_eval, x_eval)
@@ -119,4 +119,9 @@ def gradient_of_std(regressor, x_eval):
                                                        d_k_eval_train,
                                                        k_train_train_inv,
                                                        k_eval_train)
-    return d_variance / (2 * std[:, numpy.newaxis])
+
+    # Any elements where the standard deviation is zero will have infinite gradient here. In fact the actual limit
+    # depends on which side the limit is taken from - to be 'pragmatic' we shall set the gradient to zero in this case
+    result = d_variance / (2 * std[:, numpy.newaxis])
+    result[~numpy.isfinite(result)] = 0
+    return result
