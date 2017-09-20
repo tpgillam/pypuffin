@@ -59,7 +59,7 @@ class GPHMC(MCMCBase):
         mean = numpy.mean(y_train_array, axis=0)
         return self._regressor.fit(x_train_array, y_train_array - mean)
 
-    def predict_gp(self, x, return_std=False):
+    def predict_gp(self, x, return_std=False):  # pylint: disable=invalid-name
         ''' Perform one or more predictions with the GP regression model, taking into account the training data mean
             which was used to train the current regressor.
         '''
@@ -76,13 +76,11 @@ class GPHMC(MCMCBase):
             mus, stds = self._regressor.predict(x, return_std=True)
             if single_prediction:
                 return mus[0] + mean, stds[0]
-            else:
-                return mus + mean, stds
+            return mus + mean, stds
         mus = self._regressor.predict(x, return_std=False)
         if single_prediction:
             return mus[0] + mean
-        else:
-            return mus + mean
+        return mus + mean
 
     def sample_explore(self):
         ''' Perform an exploratory sample. This will perform HMC under the prior distribution, sample a point, and
