@@ -36,7 +36,7 @@ def disable_typechecking():
         >>> print(5, typechecking_enabled())
         5 True
     '''
-    global _TYPECHECKING_ENABLED
+    global _TYPECHECKING_ENABLED  # pylint: disable=global-statement
     _TYPECHECKING_ENABLED_STACK.append(_TYPECHECKING_ENABLED)
     _TYPECHECKING_ENABLED = False
     yield
