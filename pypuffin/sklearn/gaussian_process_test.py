@@ -22,7 +22,7 @@ class TestGaussianProcess(TestCase):
 
     def setUp(self):
         super().setUp()
-        numpy.random.seed(0)  # TODO Make custom test case class that always resets the numpy random seed
+        numpy.random.seed(0)
         x = numpy.linspace(1, 8, 6)
         self.x = _reshapex(x)
         y = x * numpy.sin(x)
