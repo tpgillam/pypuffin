@@ -55,8 +55,8 @@ class HMC(MCMCBase):
             eps:                 Size of each leapfrog step
     '''
 
-    @accepts(object, numpy.ndarray, Callable, Callable, Callable, Callable, Integral, eps=Real)
-    def __init__(self, q_0, f_potential, f_kinetic, f_grad_potential, f_grad_kinetic, num_leapfrog_steps, eps=1e-3):
+    @accepts(object, numpy.ndarray, Callable, Callable, Callable, Callable, Integral, Real)
+    def __init__(self, q_0, f_potential, f_kinetic, f_grad_potential, f_grad_kinetic, num_leapfrog_steps, eps):
         assert len(q_0.shape) == 1
         self._q = q_0  # pylint: disable=invalid-name
         self._f_potential = f_potential
@@ -96,3 +96,15 @@ class HMC(MCMCBase):
         # Update the internal state
         self._q = q
         return q
+
+
+class ScalarMassHMC(HMC):
+    ''' Simple HMC which is implemented in terms of a kinetic energy with a single tunable 'mass' parameter.
+        That is, the kinetic energy takes the form p.p / 2m.
+    '''
+
+    @accepts(object, numpy.ndarray, Callable, Callable, Real, Integral, Real)
+    def __init__(self, q_0, f_potential, f_grad_potential, mass, num_leapfrog_steps, eps):
+        f_kinetic = lambda p: 0.5 * p.dot(p) / mass
+        f_grad_kinetic = lambda p: p / mass
+        super().__init__(q_0, f_potential, f_kinetic, f_grad_potential, f_grad_kinetic, num_leapfrog_steps, eps)
