@@ -22,10 +22,6 @@ class TestHMC(TestCase):
         eps = 1e-2
         hmc = HMC(q_0, f_potential, f_kinetic, f_grad_potential, f_grad_kinetic, num_leapfrog_steps, eps)
 
-        # TODO it seems that the distribution we find here isn't matching the true normal distribution very well.
-        # What to do about it? The mean seems correct, however for large numbers of samples the sampled distribution
-        # appears to have a standard deviation that is too wide. Is it due to incorrect settings of hyperparameters
-        # above?
         samples = [hmc.sample() for _ in range(500)]
         mean = numpy.mean(samples)
         self.assertAlmostEqual(mean, 0, places=1)

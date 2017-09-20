@@ -11,22 +11,36 @@ from pypuffin.numeric.mcmc.base import MCMCBase
 from pypuffin.types import Callable
 
 
-@accepts(numpy.ndarray, numpy.ndarray, Callable, Callable, Real)
-def _leapfrog_step(q, p, f_grad_potential, f_grad_kinetic, eps):  # pylint: disable=invalid-name
-    ''' Perform a leapfrog step in the kinetic energy and potential.
+@accepts(numpy.ndarray, numpy.ndarray, Callable, Callable, Real, Integral)
+def _leapfrog_iteration(q, p, f_grad_potential, f_grad_kinetic, eps, num_steps):  # pylint: disable=invalid-name
+    ''' Perform num_steps of leapfrog iteration in the kinetic energy and potential.
 
         Arguments:
-            q: ndarray of shape (N,) -- variables of interest ("position")
-            p: ndarray of shape (N,) -- auxiliary variables ("momentum")
-            f_grad_potential: q -> (N,) : gradient of potential wrt. q
-            f_grad_kinetic: p -> (N,) : gradient of potential wrt. p
+            q: ndarray of shape (N,):    variables of interest ("position")
+            p: ndarray of shape (N,) :   auxiliary variables ("momentum")
+            f_grad_potential: q -> (N,): gradient of potential wrt. q
+            f_grad_kinetic: p -> (N,):   gradient of potential wrt. p
+            eps:                         step size
+            num_steps:                   number of steps to take
 
-        Returns q(t + eps), p(t + eps)
+        Returns q(t + num_steps * eps), p(t + num_steps * eps)
     '''
-    p_1 = p - (eps / 2) * f_grad_potential(q)
-    q_2 = q + eps * f_grad_kinetic(p_1)
-    p_2 = p_1 - (eps / 2) * f_grad_potential(q_2)
-    return q_2, p_2
+    # Copy arguments - we will subsequently perform in-place updates. Also cast to float
+    q = q.astype(numpy.float64)
+    p = p.copy(numpy.float64)
+
+    # Initial step for momentum is a half-step
+    p -= (eps / 2) * f_grad_potential(q)
+
+    for _ in range(num_steps - 1):
+        # Full steps for both position and momentum, except on the last step
+        q += eps * f_grad_kinetic(p)
+        p -= eps * f_grad_potential(q)
+
+    # Finish with a full step for position, and half for momentum
+    q += eps * f_grad_kinetic(p)
+    p -= (eps / 2) * f_grad_potential(q)
+    return q, p
 
 
 class HMC(MCMCBase):
@@ -67,8 +81,8 @@ class HMC(MCMCBase):
         q_0, p_0 = q, p
 
         # Perform the requisite number of leapfrog steps
-        for _ in range(self._num_leapfrog_steps):
-            q, p = _leapfrog_step(q, p, self._f_grad_potential, self._f_grad_kinetic, eps=self._eps)
+        q, p = _leapfrog_iteration(q, p, self._f_grad_potential, self._f_grad_kinetic, self._eps,
+                                   self._num_leapfrog_steps)
 
         # NB, we negative the momentum variable here as required to preserve detailed balance in the acceptance
         # criterion. However, in practice K(-p) = K(p), and therefore it doesn't matter.
