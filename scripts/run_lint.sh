@@ -1,11 +1,16 @@
-echo "Running pylint..."
-echo
 SCRIPTS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $SCRIPTS_DIR/setup.sh
-pylint --rcfile=$SCRIPTS_DIR/../pylintrc pypuffin
 
+if [ $# -eq 0 ]; then
+    # No argument supplied - default to running lint on everything
+    module="pypuffin"
+else
+    module=$1
+fi
+
+echo "Running pylint for $module..."
+pylint --rcfile=$SCRIPTS_DIR/../pylintrc $module
 echo "...done."
-echo
 
 # Static type checker
 # TODO - after some initial testing it seems like this isn't really quite ready for general use. It
