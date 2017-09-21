@@ -32,7 +32,12 @@ def main():
     else:
         modules = sys.argv
     nose.run(addplugins=[IgnoreDocstrings()],
-             argv=modules + ['--with-doctest', '-v', '--with-ignore-docstrings'])
+             argv=modules + [
+                 '--with-doctest',  # Run doctests as well
+                 '-v',  # Verbose logging mode
+                 '--with-ignore-docstrings',  # Enable our plugin above
+                 '--nologcapture',  # Ignore logs, since otherwise we get loads of noise when importing tensorflow.
+             ])
 
 
 if __name__ == '__main__':
