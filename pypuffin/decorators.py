@@ -5,6 +5,8 @@ import inspect
 from functools import wraps
 from inspect import Parameter  # pylint: disable=ungrouped-imports
 
+from boltons.cacheutils import cachedproperty
+
 from pypuffin.contextlib import safecontextmanager
 
 
@@ -241,6 +243,7 @@ def lazy_function(func):
         1
         >>> moo()
         1
+
     '''
     @wraps(func)
     def wrapper():
@@ -249,3 +252,30 @@ def lazy_function(func):
             wrapper._lazy_cache = func()  # pylint: disable=protected-access
         return wrapper._lazy_cache  # pylint: disable=protected-access
     return wrapper
+
+
+def lazy(method):
+    ''' Wrap a class instance method, and expose it as a property-like entity.
+
+        >>> class Moo():
+        ...     def __init__(self, x):
+        ...         self.x = x
+        ...     @lazy
+        ...     def moo(self):
+        ...         print('moo')
+        ...         return self.x
+        >>> moo1 = Moo(1)
+        >>> moo2 = Moo(2)
+        >>> moo1.moo
+        moo
+        1
+        >>> moo1.moo
+        1
+        >>> moo2.moo
+        moo
+        2
+        >>> moo2.moo
+        2
+    '''
+    # Implement in terms of boltons cacheproperty, which has the desired behaviour
+    return cachedproperty(method)
