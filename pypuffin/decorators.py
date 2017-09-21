@@ -227,3 +227,25 @@ def accepts(*args, **kwargs):
             return func(*f_args, **f_kwargs)
         return new_func
     return decorator
+
+
+def lazy_function(func):
+    ''' Evaluate the wrapped function once only, on the first invocation. Will only work on functions with no arguments
+
+        >>> @lazy_function
+        ... def moo():
+        ...     print('moo')
+        ...     return 1
+        >>> moo()
+        moo
+        1
+        >>> moo()
+        1
+    '''
+    @wraps(func)
+    def wrapper():
+        ''' Cache the result of func, and store on _lazy_cache '''
+        if not hasattr(wrapper, '_lazy_cache'):
+            wrapper._lazy_cache = func()  # pylint: disable=protected-access
+        return wrapper._lazy_cache  # pylint: disable=protected-access
+    return wrapper
