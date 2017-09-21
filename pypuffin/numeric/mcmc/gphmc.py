@@ -110,9 +110,6 @@ class GPHMC(MCMCBase):
                 reshaped_x = x[numpy.newaxis, :]
                 mean_grad = gradient_of_mean(self._regressor, reshaped_x)[0]
                 std_grad = gradient_of_std(self._regressor, reshaped_x)[0]
-                # FIXME debugging
-                if numpy.isnan(mean_grad).any() or numpy.isnan(std_grad).any():
-                    print('plop', mean_grad, std_grad)
                 return -(mean_grad - std_grad)
 
             # Construct a new sampler based on these operations, and take one sample.
