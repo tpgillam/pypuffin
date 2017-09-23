@@ -18,20 +18,22 @@ class VariationalAutoencoder(metaclass=ABCMeta):
 
         Arguments:
 
-            cls_vae:     Subclass of VariationalBase, determines what form of model likelihood is used.
-            dim_latent:  The number of latent variables to use in the encoded representation.
-            optimizer:   Any valid optimizer that can be passed to the compilation of a keras Model.
+            cls_vae:       Subclass of VariationalBase, determines what form of model likelihood is used.
+            dim_original:  The original dimension of the problem
+            dim_latent:    The number of latent variables to use in the encoded representation.
+            optimizer:     Any valid optimizer that can be passed to the compilation of a keras Model.
     '''
 
-    @accepts(object, type, Integral, optimizer=(str, Optimizer))
-    def __init__(self, cls_vae, dim_latent, optimizer='adam'):
+    @accepts(object, type, Integral, Integral, optimizer=(str, Optimizer))
+    def __init__(self, cls_vae, dim_original, dim_latent, optimizer='adam'):
         assert issubclass(cls_vae, VariationalBase), "A variational layer class must be provided"
         self._cls_vae = cls_vae
+        self._dim_original = dim_original
         self._dim_latent = dim_latent
         self._optimizer = optimizer
 
     # TODO refactor interface? Might be nicer just to return VAE model, and expose the others elsewhere.
-    def build(self, input_):
+    def build(self):
         ''' Build the model, accepting a Keras layer or input. Returns three models:
 
                     (vae, encoder, decoder)
@@ -39,6 +41,7 @@ class VariationalAutoencoder(metaclass=ABCMeta):
             The former is what one uses to train the whole model; following training, the encoder and decoder models
             are useful separately for sampling.
         '''
+        input_ = Input(shape=(self._dim_original,))
         z_mean, z_log_var = self.build_encoder(input_)
 
         def sample(args):
@@ -153,26 +156,28 @@ class LayeredVAE(VariationalAutoencoder):
         ''' Build the decoder layers, called exactly once. Returns a list of layers. '''
 
 
-
 class SimpleDenseVAE(LayeredVAE):
     ''' Example VAE that creates a dense network of depth that can be parameterised in a few ways.
         For more generality, create a subclass of LayeredVAE, or even VariationalAutoencoder.
 
         Arguments:
 
-            n_layers:          The number of dense layers
-            dim_intermediate:  The size of each dense layer
-            activation:        Activation for layers, e.g. 'relu' or 'tanh'
-            dropout:           None if no dropout is to be used, else float for dropout rate
+            n_layers:            The number of dense layers
+            dim_intermediate:    The size of each dense layer
+            activation:          Activation for layers, e.g. 'relu' or 'tanh'
+            activation_decoder:  Activation for the decoder layer
+            dropout:             None if no dropout is to be used, else float for dropout rate
 
         Other arguments as for VariationalAutoencoder.
     '''
 
-    def __init__(self, n_layers, dim_intermediate, activation, dropout, cls_vae, dim_latent, optimizer='adam'):
-        super().__init__(cls_vae, dim_latent, optimizer)
+    def __init__(self, n_layers, dim_intermediate, activation, activation_decoder, dropout, cls_vae, dim_original,
+                 dim_latent, optimizer='adam'):
+        super().__init__(cls_vae, dim_original, dim_latent, optimizer)
         self._n_layers = n_layers
         self._dim_intermediate = dim_intermediate
         self._activation = activation
+        self._activation_decoder = activation_decoder
         self._dropout = dropout
 
     def _build_pre_encoder_layers(self):
@@ -191,7 +196,7 @@ class SimpleDenseVAE(LayeredVAE):
 
     def _build_decoder_layers(self):
         ''' Build the decoder layers, called exactly once. Returns a list of layers. '''
-        return self._make_layers()
+        return self._make_layers() + [Dense(self._dim_original, activation=self._activation_decoder)]
 
     def _make_layers(self):
         ''' Both the pre-encoder, and decoder, use the same layer structure -- this implements that '''
