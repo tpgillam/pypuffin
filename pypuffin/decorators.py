@@ -243,7 +243,6 @@ def lazy_function(func):
         1
         >>> moo()
         1
-
     '''
     @wraps(func)
     def wrapper():
