@@ -23,8 +23,11 @@ class VariationalBase(Layer):
             divergence term that is independent of any modelling choice.
         '''
         model_loss = self.model_nll(x, x_decoded_mean)
-        kl_loss = -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
-        return K.mean(model_loss + kl_loss)
+        return K.mean(model_loss + self.kl_loss(z_mean, z_log_var))
+
+    def kl_loss(self, z_mean, z_log_var):
+        ''' The loss term coming from the difference between the distribution in z and the unit normal distribution '''
+        return -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
 
     @abstractmethod
     def model_nll(self, x, x_pred):  # pylint: disable=invalid-name
