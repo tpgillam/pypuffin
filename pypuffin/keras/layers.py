@@ -25,7 +25,8 @@ class VariationalBase(Layer):
         model_loss = self.model_nll(x, x_decoded_mean)
         return K.mean(model_loss + self.kl_loss(z_mean, z_log_var))
 
-    def kl_loss(self, z_mean, z_log_var):
+    @staticmethod
+    def kl_loss(z_mean, z_log_var):
         ''' The loss term coming from the difference between the distribution in z and the unit normal distribution '''
         return -0.5 * K.sum(1 + z_log_var - K.square(z_mean) - K.exp(z_log_var), axis=-1)
 
